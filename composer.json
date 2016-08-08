@@ -7,9 +7,9 @@
         "psr-4": {
             "DCNGmbH\\MooxSocial\\": "Classes/"
         }
-    }
+    },
     "replace": {
         "moox_social": "self.version",
         "typo3-ter/moox_social": "self.version"
-    },
+    }
 }
