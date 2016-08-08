@@ -1,0 +1,15 @@
+{
+    "name": "moox/moox_social",
+    "type": "typo3-cms-extension",
+    "description": "MOOX Social Media: Facebook, Twitter, Youtube, Slideshare and Flickr Plugins, scheduled sync with all APIs and cached output.",
+    "homepage": "http://www.moox.org/",
+    "autoload": {
+        "psr-4": {
+            "DCNGmbH\\MooxSocial\\": "Classes/"
+        }
+    }
+    "replace": {
+        "moox_social": "self.version",
+        "typo3-ter/moox_social": "self.version"
+    },
+}
