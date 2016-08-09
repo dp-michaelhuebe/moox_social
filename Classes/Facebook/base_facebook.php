@@ -401,7 +401,7 @@ abstract class BaseFacebook
         )
       );
     }
-    catch (\TYPO3\MooxSocial\Facebook\FacebookApiException $e) {
+    catch (\DCNGmbH\MooxSocial\Facebook\FacebookApiException $e) {
       // most likely that user very recently revoked authorization.
       // In any event, we don't have an access token, so say so.
       return false;
@@ -750,7 +750,7 @@ abstract class BaseFacebook
     try {
       $user_info = $this->api('/me');
       return $user_info['id'];
-    } catch (\TYPO3\MooxSocial\Facebook\FacebookApiException $e) {
+    } catch (\DCNGmbH\MooxSocial\Facebook\FacebookApiException $e) {
       return 0;
     }
   }
@@ -811,7 +811,7 @@ abstract class BaseFacebook
                           'client_secret' => $this->getAppSecret(),
                           'redirect_uri' => $redirect_uri,
                           'code' => $code));
-    } catch (\TYPO3\MooxSocial\Facebook\FacebookApiException $e) {
+    } catch (\DCNGmbH\MooxSocial\Facebook\FacebookApiException $e) {
       // most likely that user very recently revoked authorization.
       // In any event, we don't have an access token, so say so.
       return false;
@@ -1025,7 +1025,7 @@ abstract class BaseFacebook
     }
 
     if ($result === false) {
-      $e = new \TYPO3\MooxSocial\Facebook\FacebookApiException(array(
+      $e = new \DCNGmbH\MooxSocial\Facebook\FacebookApiException(array(
         'error_code' => curl_errno($ch),
         'error' => array(
         'message' => curl_error($ch),
@@ -1338,7 +1338,7 @@ abstract class BaseFacebook
    *                      by a failed API call.
    */
   protected function throwAPIException($result) {
-    $e = new \TYPO3\MooxSocial\Facebook\FacebookApiException($result);
+    $e = new \DCNGmbH\MooxSocial\Facebook\FacebookApiException($result);
     switch ($e->getType()) {
       // OAuth 2.0 Draft 00 style
       case 'OAuthException':
