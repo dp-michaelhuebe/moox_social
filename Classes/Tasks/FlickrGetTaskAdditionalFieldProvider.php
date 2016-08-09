@@ -5,7 +5,7 @@ namespace DCNGmbH\MooxSocial\Tasks;
  *  Copyright notice
  *
  *  (c) 2014 Dominic Martin <dm@dcn.de>, DCN GmbH
- *  
+ *
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,8 +28,8 @@ namespace DCNGmbH\MooxSocial\Tasks;
 /**
  * Include Administration Controller
  */
-require_once \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('moox_social','Classes/Controller/AdministrationController.php'); 
- 
+require_once \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('moox_social','Classes/Controller/AdministrationController.php');
+
 /**
  * Additional field provider for the Flickr get task
  *
@@ -49,7 +49,7 @@ class FlickrGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addit
 	 * @return array	Array containing all the information pertaining to the additional fields
 	 */
 	public function getAdditionalFields(array &$taskInfo, $task, \TYPO3\CMS\Scheduler\Controller\SchedulerModuleController $parentObject) {
-		
+
 		// Initialize extra field value
 		if (empty($taskInfo['pid'])) {
 			if ($parentObject->CMD == 'add') {
@@ -63,7 +63,7 @@ class FlickrGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addit
 				$taskInfo['pid'] = '';
 			}
 		}
-		
+
 		if (empty($taskInfo['apiKey'])) {
 			if ($parentObject->CMD == 'add') {
 				// In case of new task and if field is empty, set default user id
@@ -76,7 +76,7 @@ class FlickrGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addit
 				$taskInfo['apiKey'] = '';
 			}
 		}
-		
+
 		if (empty($taskInfo['apiSecretKey'])) {
 			if ($parentObject->CMD == 'add') {
 				// In case of new task and if field is empty, set default user id
@@ -89,7 +89,7 @@ class FlickrGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addit
 				$taskInfo['apiSecretKey'] = '';
 			}
 		}
-		
+
 		if (empty($taskInfo['userId'])) {
 			if ($parentObject->CMD == 'add') {
 				// In case of new task and if field is empty, set default user id
@@ -102,7 +102,7 @@ class FlickrGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addit
 				$taskInfo['userId'] = '';
 			}
 		}
-		
+
 		if (empty($taskInfo['email'])) {
 			if ($parentObject->CMD == 'add') {
 				// In case of new task and if field is empty, set default email
@@ -115,12 +115,12 @@ class FlickrGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addit
 				$taskInfo['email'] = '';
 			}
 		}
-		
+
 		$additionalFields = array();
-		
+
 		// Write the code for the field
 		$fieldID = 'task_pid';
-		//$fieldCode = '<input type="text" name="tx_scheduler[pid]" id="' . $fieldID . '" value="' . $taskInfo['pid'] . '" size="10" />';	
+		//$fieldCode = '<input type="text" name="tx_scheduler[pid]" id="' . $fieldID . '" value="' . $taskInfo['pid'] . '" size="10" />';
 		$fieldCode = $this->getSocialFoldersSelector('tx_scheduler[pid]',$taskInfo['pid']);
 		//$fieldCode .= '<div style="display: block">'.\TYPO3\CMS\Extbase\Utility\LocalizationUtility::translate( 'LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_flickrgettask.api_label', 'moox_social' ).'</div>';
 		$additionalFields[$fieldID] = array(
@@ -129,47 +129,47 @@ class FlickrGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addit
 			'cshKey' => '_MOD_tools_txschedulerM1',
 			'cshLabel' => $fieldID
 		);
-		
+
 		// Write the code for the field
-		$fieldID = 'task_apiKey';		
-		$fieldCode = '<input type="text" size="30" name="tx_scheduler[apiKey]" id="' . $fieldID . '" value="' . $taskInfo['apiKey'] . '" size="10" />';	
+		$fieldID = 'task_apiKey';
+		$fieldCode = '<input type="text" size="30" name="tx_scheduler[apiKey]" id="' . $fieldID . '" value="' . $taskInfo['apiKey'] . '" size="10" />';
 		$additionalFields[$fieldID] = array(
 			'code' => $fieldCode,
 			'label' => '<strong style="width: 80px;display: inline-block">[Flickr]</strong> '.\TYPO3\CMS\Extbase\Utility\LocalizationUtility::translate( 'LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_flickrgettask.api_key_label', 'moox_social' ),
 			'cshKey' => '_MOD_tools_txschedulerM1',
 			'cshLabel' => $fieldID
 		);
-		
+
 		// Write the code for the field
-		$fieldID = 'task_apiSecretKey';		
-		$fieldCode = '<input type="text" size="30" name="tx_scheduler[apiSecretKey]" id="' . $fieldID . '" value="' . $taskInfo['apiSecretKey'] . '" size="10" />';	
+		$fieldID = 'task_apiSecretKey';
+		$fieldCode = '<input type="text" size="30" name="tx_scheduler[apiSecretKey]" id="' . $fieldID . '" value="' . $taskInfo['apiSecretKey'] . '" size="10" />';
 		$additionalFields[$fieldID] = array(
 			'code' => $fieldCode,
 			'label' => '<strong style="width: 80px;display: inline-block">[Flickr]</strong> '.\TYPO3\CMS\Extbase\Utility\LocalizationUtility::translate( 'LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_flickrgettask.api_secret_key_label', 'moox_social' ),
 			'cshKey' => '_MOD_tools_txschedulerM1',
 			'cshLabel' => $fieldID
 		);
-		
+
 		// Write the code for the field
-		$fieldID = 'task_userId';		
-		$fieldCode = '<input type="text" size="30" name="tx_scheduler[userId]" id="' . $fieldID . '" value="' . $taskInfo['userId'] . '" size="10" />';	
+		$fieldID = 'task_userId';
+		$fieldCode = '<input type="text" size="30" name="tx_scheduler[userId]" id="' . $fieldID . '" value="' . $taskInfo['userId'] . '" size="10" />';
 		$additionalFields[$fieldID] = array(
 			'code' => $fieldCode,
 			'label' => '<strong style="width: 80px;display: inline-block">[Flickr]</strong> '.\TYPO3\CMS\Extbase\Utility\LocalizationUtility::translate( 'LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_flickrgettask.user_id_label', 'moox_social' ),
 			'cshKey' => '_MOD_tools_txschedulerM1',
 			'cshLabel' => $fieldID
 		);
-		
+
 		// Write the code for the field
 		$fieldID = 'task_email';
-		$fieldCode = '<input type="text" size="30" name="tx_scheduler[email]" id="' . $fieldID . '" value="' . $taskInfo['email'] . '" size="10" />';		
+		$fieldCode = '<input type="text" size="30" name="tx_scheduler[email]" id="' . $fieldID . '" value="' . $taskInfo['email'] . '" size="10" />';
 		$additionalFields[$fieldID] = array(
 			'code' => $fieldCode,
 			'label' => '<strong style="width: 80px;display: inline-block">[Flickr]</strong> '.\TYPO3\CMS\Extbase\Utility\LocalizationUtility::translate( 'LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_flickrgettask.email_label', 'moox_social' ),
 			'cshKey' => '_MOD_tools_txschedulerM1',
 			'cshLabel' => $fieldID
 		);
-		
+
 		return $additionalFields;
 	}
 
@@ -182,42 +182,42 @@ class FlickrGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addit
 	 * @return boolean TRUE if validation was ok (or selected class is not relevant), FALSE otherwise
 	 */
 	public function validateAdditionalFields(array &$submittedData, \TYPO3\CMS\Scheduler\Controller\SchedulerModuleController $parentObject) {
-		$submittedData['pid'] = intval($submittedData['pid']);				
+		$submittedData['pid'] = intval($submittedData['pid']);
 		if ($submittedData['pid']<0) {
 			$parentObject->addMessage($GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_flickrgettask.pid_error'), \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
 			$result = FALSE;
 		} else {
 			$result = TRUE;
 		}
-		
+
 		if ($submittedData['apiKey']=="") {
 			$parentObject->addMessage($GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_flickrgettask.api_key_error'), \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
 			$result = FALSE;
 		} else {
 			$result = TRUE;
 		}
-		
+
 		if ($submittedData['apiSecretKey']=="") {
 			$parentObject->addMessage($GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_flickrgettask.api_secret_key_error'), \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
 			$result = FALSE;
 		} else {
 			$result = TRUE;
 		}
-		
+
 		if ($submittedData['userId']=="") {
 			$parentObject->addMessage($GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_flickrgettask.user_id_error'), \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
 			$result = FALSE;
 		} else {
 			$result = TRUE;
 		}
-		
+
 		if ($submittedData['email']!="" && !\TYPO3\CMS\Core\Utility\GeneralUtility::validEmail($submittedData['email'])) {
 			$parentObject->addMessage($GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_flickrgettask.email_error'), \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
 			$result = FALSE;
 		} else {
 			$result = TRUE;
 		}
-		
+
 		if($result){
 			$config = array(
 				'api_key' => $submittedData['apiKey'],
@@ -225,13 +225,13 @@ class FlickrGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addit
 				'user_id' => $submittedData['userId'],
 				'allowSignedRequest' => false
 			);
-			
+
 			$feedUrl = 'https://api.flickr.com/services/rest/?method=flickr.photosets.getList&api_key='.$submittedData['apiKey'].'&user_id='.$submittedData['userId'].'&format=rest';
 			$feedXml = simplexml_load_file($feedUrl);
-			
+
 			$flickrFeed = array();
-			
-			foreach($feedXml->photosets[0]->photoset as $item) {				
+
+			foreach($feedXml->photosets[0]->photoset as $item) {
 				$flickrFeed[] = array(
 					'id' => (string)$item->attributes()->id,
 					'primary' => (string)$item->attributes()->primary,
@@ -250,16 +250,16 @@ class FlickrGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addit
 					'title' => (string)$item->title,
 					'description' => (string)$item->description
 				);
-			}   		
-						
-			try {			
+			}
+
+			try {
 				$rawFeed = $flickrFeed;
 			} catch (\Exception $e) {
 				$parentObject->addMessage($GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_flickrgettask.api_error')." [". $e->getMessage()."]", \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
-				$result = FALSE;				
-			}						
+				$result = FALSE;
+			}
 		}
-		
+
 		return $result;
 	}
 
@@ -278,21 +278,23 @@ class FlickrGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addit
 		$task->userId = $submittedData['userId'];
 		$task->email = $submittedData['email'];
 	}
-	
+
 	/**
-	 * Get select box of folders with social module	
+	 * Get select box of folders with social module
 	 *
-	 * @param integer $pid current storage pid	
+	 * @param integer $pid current storage pid
 	 * @return	string	Folder selector HTML code
 	 */
 	public function getSocialFoldersSelector($selectorName,$pid = 0) {
-		
-		$folders = \DCNGmbH\MooxSocial\Controller\AdministrationController::getSocialFolders();
-		
+
+		$objectManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\CMS\Extbase\Object\ObjectManager');
+		$administrationController = $objectManager->get('DCNGmbH\\MooxSocial\\Controller\\AdministrationController');
+		$folders = $administrationController->getSocialFolders();
+
 		$selector = '<select name="' . $selectorName . '">';
-		
+
 		$selector .= '<option value="0">'.$GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_flickrgettask.default_storage').' [0]</option>';
-		
+
 		foreach ($folders as $folder) {
 			$selectedAttribute = '';
 			if ($folder['uid'] == $pid) {

@@ -5,7 +5,7 @@ namespace DCNGmbH\MooxSocial\Tasks;
  *  Copyright notice
  *
  *  (c) 2014 Dominic Martin <dm@dcn.de>, DCN GmbH
- *  
+ *
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,8 +28,8 @@ namespace DCNGmbH\MooxSocial\Tasks;
 /**
  * Include Administration Controller
  */
-require_once \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('moox_social','Classes/Controller/AdministrationController.php'); 
- 
+require_once \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('moox_social','Classes/Controller/AdministrationController.php');
+
 /**
  * Additional field provider for the Twitter get task
  *
@@ -49,7 +49,7 @@ class TwitterGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addi
 	 * @return array	Array containing all the information pertaining to the additional fields
 	 */
 	public function getAdditionalFields(array &$taskInfo, $task, \TYPO3\CMS\Scheduler\Controller\SchedulerModuleController $parentObject) {
-		
+
 		// Initialize extra field value
 		if (empty($taskInfo['pid'])) {
 			if ($parentObject->CMD == 'add') {
@@ -63,7 +63,7 @@ class TwitterGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addi
 				$taskInfo['pid'] = 0;
 			}
 		}
-		
+
 		if (empty($taskInfo['oauthAccessToken'])) {
 			if ($parentObject->CMD == 'add') {
 				// In case of new task and if field is empty, set default pid
@@ -76,7 +76,7 @@ class TwitterGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addi
 				$taskInfo['oauthAccessToken'] = '';
 			}
 		}
-		
+
 		if (empty($taskInfo['oauthAccessTokenSecret'])) {
 			if ($parentObject->CMD == 'add') {
 				// In case of new task and if field is empty, set default pid
@@ -89,7 +89,7 @@ class TwitterGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addi
 				$taskInfo['oauthAccessTokenSecret'] = '';
 			}
 		}
-		
+
 		if (empty($taskInfo['consumerKey'])) {
 			if ($parentObject->CMD == 'add') {
 				// In case of new task and if field is empty, set default pid
@@ -102,7 +102,7 @@ class TwitterGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addi
 				$taskInfo['consumerKey'] = '';
 			}
 		}
-		
+
 		if (empty($taskInfo['consumerKeySecret'])) {
 			if ($parentObject->CMD == 'add') {
 				// In case of new task and if field is empty, set default pid
@@ -115,7 +115,7 @@ class TwitterGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addi
 				$taskInfo['consumerKeySecret'] = '';
 			}
 		}
-		
+
 		if (empty($taskInfo['screenName'])) {
 			if ($parentObject->CMD == 'add') {
 				// In case of new task and if field is empty, set default pid
@@ -128,7 +128,7 @@ class TwitterGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addi
 				$taskInfo['screenName'] = '';
 			}
 		}
-		
+
 		if (empty($taskInfo['email'])) {
 			if ($parentObject->CMD == 'add') {
 				// In case of new task and if field is empty, set default pid
@@ -141,79 +141,79 @@ class TwitterGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addi
 				$taskInfo['email'] = '';
 			}
 		}
-		
+
 		$additionalFields = array();
-		
+
 		// Write the code for the field
 		$fieldID = 'task_pid';
-		$fieldCode = $this->getSocialFoldersSelector('tx_scheduler[pid]',$taskInfo['pid']);		
+		$fieldCode = $this->getSocialFoldersSelector('tx_scheduler[pid]',$taskInfo['pid']);
 		$additionalFields[$fieldID] = array(
 			'code' => $fieldCode,
 			'label' => '<strong style="width: 80px;display: inline-block">[TYPO3]</strong> '.\TYPO3\CMS\Extbase\Utility\LocalizationUtility::translate( 'LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_twittergettask.pid_label', 'moox_social' ),
 			'cshKey' => '_MOD_tools_txschedulerM1',
 			'cshLabel' => $fieldID
 		);
-		
+
 		// Write the code for the field
-		$fieldID = 'task_oauthAccessToken';		
-		$fieldCode = '<input type="text" size="30" name="tx_scheduler[oauthAccessToken]" id="' . $fieldID . '" value="' . $taskInfo['oauthAccessToken'] . '" size="10" />';	
+		$fieldID = 'task_oauthAccessToken';
+		$fieldCode = '<input type="text" size="30" name="tx_scheduler[oauthAccessToken]" id="' . $fieldID . '" value="' . $taskInfo['oauthAccessToken'] . '" size="10" />';
 		$additionalFields[$fieldID] = array(
 			'code' => $fieldCode,
 			'label' => '<strong style="width: 80px;display: inline-block">[Twitter]</strong> '.\TYPO3\CMS\Extbase\Utility\LocalizationUtility::translate( 'LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_twittergettask.oauth_access_token_label', 'moox_social' ),
 			'cshKey' => '_MOD_tools_txschedulerM1',
 			'cshLabel' => $fieldID
 		);
-		
+
 		// Write the code for the field
-		$fieldID = 'task_oauthAccessTokenSecret';		
-		$fieldCode = '<input type="text" size="30" name="tx_scheduler[oauthAccessTokenSecret]" id="' . $fieldID . '" value="' . $taskInfo['oauthAccessTokenSecret'] . '" size="10" />';	
+		$fieldID = 'task_oauthAccessTokenSecret';
+		$fieldCode = '<input type="text" size="30" name="tx_scheduler[oauthAccessTokenSecret]" id="' . $fieldID . '" value="' . $taskInfo['oauthAccessTokenSecret'] . '" size="10" />';
 		$additionalFields[$fieldID] = array(
 			'code' => $fieldCode,
 			'label' => '<strong style="width: 80px;display: inline-block">[Twitter]</strong> '.\TYPO3\CMS\Extbase\Utility\LocalizationUtility::translate( 'LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_twittergettask.oauth_access_token_secret_label', 'moox_social' ),
 			'cshKey' => '_MOD_tools_txschedulerM1',
 			'cshLabel' => $fieldID
 		);
-		
+
 		// Write the code for the field
 		$fieldID = 'task_consumerKey';
-		$fieldCode = '<input type="text" size="30" name="tx_scheduler[consumerKey]" id="' . $fieldID . '" value="' . $taskInfo['consumerKey'] . '" size="10" />';		
+		$fieldCode = '<input type="text" size="30" name="tx_scheduler[consumerKey]" id="' . $fieldID . '" value="' . $taskInfo['consumerKey'] . '" size="10" />';
 		$additionalFields[$fieldID] = array(
 			'code' => $fieldCode,
 			'label' => '<strong style="width: 80px;display: inline-block">[Twitter]</strong> '.\TYPO3\CMS\Extbase\Utility\LocalizationUtility::translate( 'LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_twittergettask.consumer_key_label', 'moox_social' ),
 			'cshKey' => '_MOD_tools_txschedulerM1',
 			'cshLabel' => $fieldID
 		);
-		
+
 		// Write the code for the field
 		$fieldID = 'task_consumerKeySecret';
-		$fieldCode = '<input type="text" size="30" name="tx_scheduler[consumerKeySecret]" id="' . $fieldID . '" value="' . $taskInfo['consumerKeySecret'] . '" size="10" />';		
+		$fieldCode = '<input type="text" size="30" name="tx_scheduler[consumerKeySecret]" id="' . $fieldID . '" value="' . $taskInfo['consumerKeySecret'] . '" size="10" />';
 		$additionalFields[$fieldID] = array(
 			'code' => $fieldCode,
 			'label' => '<strong style="width: 80px;display: inline-block">[Twitter]</strong> '.\TYPO3\CMS\Extbase\Utility\LocalizationUtility::translate( 'LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_twittergettask.consumer_key_secret_label', 'moox_social' ),
 			'cshKey' => '_MOD_tools_txschedulerM1',
 			'cshLabel' => $fieldID
 		);
-		
+
 		// Write the code for the field
 		$fieldID = 'task_screenName';
-		$fieldCode = '<input type="text" size="30" name="tx_scheduler[screenName]" id="' . $fieldID . '" value="' . $taskInfo['screenName'] . '" size="10" />';		
+		$fieldCode = '<input type="text" size="30" name="tx_scheduler[screenName]" id="' . $fieldID . '" value="' . $taskInfo['screenName'] . '" size="10" />';
 		$additionalFields[$fieldID] = array(
 			'code' => $fieldCode,
 			'label' => '<strong style="width: 80px;display: inline-block">[Twitter]</strong> '.\TYPO3\CMS\Extbase\Utility\LocalizationUtility::translate( 'LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_twittergettask.screen_name_label', 'moox_social' ),
 			'cshKey' => '_MOD_tools_txschedulerM1',
 			'cshLabel' => $fieldID
 		);
-		
+
 		// Write the code for the field
 		$fieldID = 'task_email';
-		$fieldCode = '<input type="text" size="30" name="tx_scheduler[email]" id="' . $fieldID . '" value="' . $taskInfo['email'] . '" size="10" />';		
+		$fieldCode = '<input type="text" size="30" name="tx_scheduler[email]" id="' . $fieldID . '" value="' . $taskInfo['email'] . '" size="10" />';
 		$additionalFields[$fieldID] = array(
 			'code' => $fieldCode,
 			'label' => '<strong style="width: 80px;display: inline-block">[Twitter]</strong> '.\TYPO3\CMS\Extbase\Utility\LocalizationUtility::translate( 'LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_twittergettask.email_label', 'moox_social' ),
 			'cshKey' => '_MOD_tools_txschedulerM1',
 			'cshLabel' => $fieldID
 		);
-		
+
 		return $additionalFields;
 	}
 
@@ -226,21 +226,21 @@ class TwitterGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addi
 	 * @return boolean TRUE if validation was ok (or selected class is not relevant), FALSE otherwise
 	 */
 	public function validateAdditionalFields(array &$submittedData, \TYPO3\CMS\Scheduler\Controller\SchedulerModuleController $parentObject) {
-		
+
 		$result = TRUE;
-		
-		$submittedData['pid'] = intval($submittedData['pid']);						
-		
+
+		$submittedData['pid'] = intval($submittedData['pid']);
+
 		if ($submittedData['oauthAccessToken']=="") {
 			$parentObject->addMessage($GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_twittergettask.oauth_access_token_error'), \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
 			$result = FALSE;
-		} 
-		
+		}
+
 		if ($submittedData['oauthAccessTokenSecret']=="") {
 			$parentObject->addMessage($GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_twittergettask.oauth_access_token_secret_error'), \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
 			$result = FALSE;
-		} 
-		
+		}
+
 		if ($submittedData['consumerKey']=="") {
 			$parentObject->addMessage($GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_twittergettask.consumer_key_error'), \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
 			$result = FALSE;
@@ -249,18 +249,18 @@ class TwitterGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addi
 		if ($submittedData['consumerKeySecret']=="") {
 			$parentObject->addMessage($GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_twittergettask.consumer_key_secret_error'), \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
 			$result = FALSE;
-		} 
-		
+		}
+
 		if ($submittedData['screenName']=="") {
 			$parentObject->addMessage($GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_twittergettask.screen_name_error'), \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
 			$result = FALSE;
-		} 	
-		
+		}
+
 		if ($submittedData['email']!="" && !\TYPO3\CMS\Core\Utility\GeneralUtility::validEmail($submittedData['email'])) {
 			$parentObject->addMessage($GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_twittergettask.email_error'), \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
 			$result = FALSE;
-		} 
-		
+		}
+
 		if($result){
 			$config = array(
 				'consumer_key' 				=> $submittedData['consumerKey'],
@@ -270,20 +270,20 @@ class TwitterGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addi
 				'screenName' 				=> $submittedData['screenName'],
 				'allowSignedRequest' 		=> false
 			);
-				
+
 			$twitter 		= new \DCNGmbH\MooxSocial\Twitter\TwitterAPIExchange($config);
 			$url 			= "https://api.twitter.com/1.1/statuses/user_timeline.json";
 			$requestMethod 	= "GET";
 			$getfield 		= '?screen_name=' . $submittedData['screenName'];
-			
-			try {			
+
+			try {
 				$rawFeed = json_decode($twitter->setGetfield($getfield)->buildOauth($url, $requestMethod)->performRequest(),$assoc = TRUE);
 			} catch (\Exception $e) {
 				$parentObject->addMessage($GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_twittergettask.api_error')." [". $e->getMessage()."]", \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
-				$result = FALSE;				
-			}						
+				$result = FALSE;
+			}
 		}
-		
+
 		return $result;
 	}
 
@@ -304,21 +304,23 @@ class TwitterGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addi
 		$task->screenName 				= $submittedData['screenName'];
 		$task->email 					= $submittedData['email'];
 	}
-	
+
 	/**
-	 * Get select box of folders with social module	
+	 * Get select box of folders with social module
 	 *
-	 * @param integer $pid current storage pid	
+	 * @param integer $pid current storage pid
 	 * @return	string	Folder selector HTML code
 	 */
 	public function getSocialFoldersSelector($selectorName,$pid = 0) {
-		
-		$folders = \DCNGmbH\MooxSocial\Controller\AdministrationController::getSocialFolders();
-		
+
+		$objectManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\CMS\Extbase\Object\ObjectManager');
+		$administrationController = $objectManager->get('DCNGmbH\\MooxSocial\\Controller\\AdministrationController');
+		$folders = $administrationController->getSocialFolders();
+
 		$selector = '<select name="' . $selectorName . '">';
-		
+
 		$selector .= '<option value="0">'.$GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_twittergettask.default_storage').' [0]</option>';
-		
+
 		foreach ($folders as $folder) {
 			$selectedAttribute = '';
 			if ($folder['uid'] == $pid) {

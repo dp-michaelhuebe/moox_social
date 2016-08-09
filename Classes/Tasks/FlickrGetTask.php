@@ -5,7 +5,7 @@ namespace DCNGmbH\MooxSocial\Tasks;
  *  Copyright notice
  *
  *  (c) 2014 Dominic Martin <dm@dcn.de>, DCN GmbH
- *  
+ *
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -33,13 +33,13 @@ use TYPO3\CMS\Core\Messaging\FlashMessageService;
  /**
  * Include Flickr API Tools
  */
-require_once \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('moox_social','Classes/Flickr/phpFlickr.php'); 
+require_once \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('moox_social','Classes/Flickr/phpFlickr.php');
 
 
 /**
  * Include Flickr Repository
  */
-//require_once \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('moox_social','Classes/Domain/Repository/Flickr.php'); 
+//require_once \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('moox_social','Classes/Domain/Repository/Flickr.php');
 
 /**
  * Get Flickr videos
@@ -48,36 +48,36 @@ require_once \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('moox_s
  * @license http://www.gnu.org/licenses/gpl.html GNU General Public License, version 3 or later
  *
  */
-class FlickrGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {		
-	
+class FlickrGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
+
 	/**
 	 * Sicherheitszeitraum f�r Zeit�berschneidungen w�hrend der zyklischen Ausf�hrung des Tasks
 	 *
 	 * @var integer
 	 */
 	public $intervalBuffer = 300;
-	
+
 	/**
 	 * PID der Seite/Ordner in dem die Posts dieses Tasks gespeichert werden sollen
 	 *
 	 * @var integer
 	 */
 	public $pid;
-	
+
 	/**
 	 * Flickr api key
 	 *
 	 * @var string
 	 */
 	public $apiKey;
-	
+
 	/**
 	 * Flickr api secret key
 	 *
 	 * @var string
 	 */
 	public $apiSecretKey;
-	
+
 	/**
 	 * Flickr user ID
 	 *
@@ -91,7 +91,7 @@ class FlickrGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	 * @var \TYPO3\CMS\Core\Messaging\FlashMessageService
 	 */
 	public $flashMessageService;
-	
+
 	/**
 	 * Works through the indexing queue and indexes the queued items into Solr.
 	 *
@@ -103,38 +103,37 @@ class FlickrGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 		$objectManager = GeneralUtility::makeInstance('TYPO3\CMS\Extbase\Object\ObjectManager');
 		$flashMessageService = $objectManager->get(FlashMessageService::class);
 		$flashMessageQueue = $flashMessageService->getMessageQueueByIdentifier();
-		
+
 		// Get the extensions's configuration
-		$extConf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['moox_social']);		
+		$extConf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['moox_social']);
 		if($extConf['debugEmailSenderName']==""){
 			$extConf['debugEmailSenderName'] = $extConf['debugEmailSenderAddress'];
-		}		
-		if($this->email==""){
-			$this->email = $extConf['debugEmailReceiverAddress'];			
 		}
-		
+		if($this->email==""){
+			$this->email = $extConf['debugEmailReceiverAddress'];
+		}
+
 		$executionSucceeded = FALSE;
-		
+
 		if(!$this->pid){
 			$this->pid = 0;
 		}
-		
+
 		if($this->apiKey!="" && $this->apiSecretKey!="" && $this->userId!=""){
-			
+
 			$execution 	= $this->getExecution();
 			$interval 	= $execution->getInterval();
 			$time 		= time();
 			$to		= $time;
-			$from		= ($time-$interval-$this->intervalBuffer);			
-			
-			try {			
-				$rawFeed = \DCNGmbH\MooxSocial\Controller\FlickrController::flickr($this->apiKey,$this->apiSecretKey,$this->userId);
-				/*print "<pre>";
-                                print_r($rawFeed);
-                                print "</pre>";
-				exit();*/
+			$from		= ($time-$interval-$this->intervalBuffer);
+
+			try {
+				if (!$flickrController instanceof \DCNGmbH\MooxSocial\Controller\FlickrController) {
+					$flickrController = $objectManager->get('DCNGmbH\\MooxSocial\\Controller\\FlickrController');
+				}
+				$rawFeed = $flickrController->flickr($this->apiKey,$this->apiSecretKey,$this->userId);
 				$executionSucceeded = TRUE;
-			} catch (\Exception $e) {				
+			} catch (\Exception $e) {
 				$message = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Messaging\\FlashMessage',
 					$GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_flickrgettask.api_execution_error')." [". $e->getMessage()."]",
 					 '', // the header is optional
@@ -142,7 +141,7 @@ class FlickrGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 					 TRUE // optional, whether the message should be stored in the session or only in the \TYPO3\CMS\Core\Messaging\FlashMessageQueue object (default is FALSE)
 				);
 				$flashMessageQueue->addMessage($message);
-				if($this->email && $extConf['debugEmailSenderAddress']){				
+				if($this->email && $extConf['debugEmailSenderAddress']){
 					$lockfile = $_SERVER['DOCUMENT_ROOT']."/typo3temp/.lock-email-task-".md5($this->apiKey.$this->apiSecretKey.$this->userId);
 					if(file_exists($lockfile)){
 						$lockfiletime = filemtime($lockfile);
@@ -150,7 +149,7 @@ class FlickrGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 							unlink($lockfile);
 						}
 					}
-					if(!file_exists($lockfile)){						
+					if(!file_exists($lockfile)){
 						$message = (new \TYPO3\CMS\Core\Mail\MailMessage())
 									->setFrom(array($extConf['debugEmailSenderAddress'] => $extConf['debugEmailSenderName']))
 									->setTo(array($this->email => $this->email))
@@ -160,65 +159,68 @@ class FlickrGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 						touch($lockfile);
 					}
 				}
-			}	
-			
-			
-			
+			}
+
+
+
 			$posts = array();
-			
+
 			$postIds = array();
-			
+
 			foreach($rawFeed as $item) {
-				
+
 				if(!in_array($item['id'],$postIds)){
-					
-					$postIds[] 		= $item['id'];					
+
+					$postIds[] 		= $item['id'];
 					$postId 		= $item['id'];
-					
+
 					$item['id'] 		= $postId;
 					$item['userId'] 	= $this->userId;
 					$item['pid'] 		= $this->pid;
-					
-					$post 			= \DCNGmbH\MooxSocial\Controller\FlickrController::flickrPost($item);
-					
+
+					if (!$flickrController instanceof \DCNGmbH\MooxSocial\Controller\FlickrController) {
+						$flickrController = $objectManager->get('DCNGmbH\\MooxSocial\\Controller\\FlickrController');
+					}
+					$post 			= $flickrController->flickrPost($item);
+
 					if(is_array($post)){
 						$posts[] 		= $post;
 					}
 				}
-				
+
 			}
-			
+
 			if(count($posts)){
-				
+
 				$objectManager = GeneralUtility::makeInstance('TYPO3\CMS\Extbase\Object\ObjectManager');
 				$flickrRepository = $objectManager->get('DCNGmbH\\MooxSocial\\Domain\\Repository\\FlickrRepository');
-				
+
 				$insertCnt = 0;
 				$updateCnt = 0;
-				
-				foreach($posts AS $post){				
-										
+
+				foreach($posts AS $post){
+
 					$flickrPost		= $flickrRepository->findOneByApiUid($post['apiUid'],$this->pid);
-					
+
 					if(!($flickrPost instanceof \DCNGmbH\MooxSocial\Domain\Model\Flickr)){
 						$flickrPost = new \DCNGmbH\MooxSocial\Domain\Model\Flickr;
-						$action	= "insert";						
+						$action	= "insert";
 					}
-					
+
 					if($action=="insert"){
 						$flickrPost->setPid($post['pid']);
 						$flickrPost->setCreated($post['created']);
 					}
-					
+
 					$flickrPost->setUpdated($post['updated']);
 					$flickrPost->setType($post['type']);
 					$flickrPost->setStatusType($post['statusType']);
-					
+
 					if($action=="insert"){
 						$flickrPost->setPage($post['page']);
 						$flickrPost->setModel("flickr");
 					}
-					
+
 					$flickrPost->setAction($post['action']);
 					$flickrPost->setTitle($post['title']);
 					$flickrPost->setSummary($post['summary']);
@@ -237,17 +239,17 @@ class FlickrGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 					$flickrPost->setSharedUrl($post['sharedUrl']);
 					$flickrPost->setSharedTitle($post['sharedTitle']);
 					$flickrPost->setSharedDescription($post['sharedDescription']);
-					$flickrPost->setSharedCaption($post['sharedCaption']);				
+					$flickrPost->setSharedCaption($post['sharedCaption']);
 					$flickrPost->setLikes($post['likes']);
 					$flickrPost->setShares($post['shares']);
 					$flickrPost->setComments($post['comments']);
-					
+
 					if($action=="insert"){
 						$flickrPost->setApiUid($post['apiUid']);
 					}
-					
+
 					$flickrPost->setApiHash($post['apiHash']);
-					
+
 					if($action=="insert"){
 						$flickrRepository->add($flickrPost);
 						$insertCnt++;
@@ -255,10 +257,10 @@ class FlickrGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 						$flickrRepository->update($flickrPost);
 						$updateCnt++;
 					}
-				}	
-				
+				}
+
 				$objectManager->get('TYPO3\CMS\Extbase\Persistence\PersistenceManagerInterface')->persistAll();
-				
+
 				$message = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Messaging\\FlashMessage',
 					$insertCnt." neue Bilder geladen | ".$updateCnt." bestehende Bilder aktualisiert",
 					 '',
@@ -275,11 +277,11 @@ class FlickrGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 				);
 				$flashMessageQueue->addMessage($message);
 			}
-		} 				
+		}
 
 		return $executionSucceeded;
 	}
-	
+
 	/**
 	 * This method returns the sleep duration as additional information
 	 *
@@ -295,7 +297,7 @@ class FlickrGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 		}
 		return $info;
 	}
-	
+
 	/**
 	 * Returns the pid
 	 *
@@ -314,7 +316,7 @@ class FlickrGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	public function setPid($pid) {
 		$this->pid = $pid;
 	}
-	
+
 	/**
 	 * Returns the api key
 	 *
@@ -333,7 +335,7 @@ class FlickrGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	public function setApiKey($apiKey) {
 		$this->apiKey = $apiKey;
 	}
-	
+
 	/**
 	 * Returns the api secret key
 	 *
@@ -352,7 +354,7 @@ class FlickrGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	public function setApiSecretKey($apiSecretKey) {
 		$this->apiSecretKey = $apiSecretKey;
 	}
-	
+
 	/**
 	 * Returns the user id
 	 *
@@ -371,7 +373,7 @@ class FlickrGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	public function setUserId($userId) {
 		$this->userId = $userId;
 	}
-	
+
 	/**
 	 * Returns the page id
 	 *

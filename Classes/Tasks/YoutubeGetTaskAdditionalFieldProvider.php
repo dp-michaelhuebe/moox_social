@@ -5,7 +5,7 @@ namespace DCNGmbH\MooxSocial\Tasks;
  *  Copyright notice
  *
  *  (c) 2014 Dominic Martin <dm@dcn.de>, DCN GmbH
- *  
+ *
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,8 +28,8 @@ namespace DCNGmbH\MooxSocial\Tasks;
 /**
  * Include Administration Controller
  */
-require_once \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('moox_social','Classes/Controller/AdministrationController.php'); 
- 
+require_once \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('moox_social','Classes/Controller/AdministrationController.php');
+
 /**
  * Additional field provider for the Youtube get task
  *
@@ -49,7 +49,7 @@ class YoutubeGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addi
 	 * @return array	Array containing all the information pertaining to the additional fields
 	 */
 	public function getAdditionalFields(array &$taskInfo, $task, \TYPO3\CMS\Scheduler\Controller\SchedulerModuleController $parentObject) {
-		
+
 		// Initialize extra field value
 		if (empty($taskInfo['pid'])) {
 			if ($parentObject->CMD == 'add') {
@@ -63,7 +63,7 @@ class YoutubeGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addi
 				$taskInfo['pid'] = '';
 			}
 		}
-		
+
 		if (empty($taskInfo['youtubeChannel'])) {
 			if ($parentObject->CMD == 'add') {
 				// In case of new task and if field is empty, set default youtube channel
@@ -76,7 +76,7 @@ class YoutubeGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addi
 				$taskInfo['youtubeChannel'] = '';
 			}
 		}
-		
+
 		if (empty($taskInfo['email'])) {
 			if ($parentObject->CMD == 'add') {
 				// In case of new task and if field is empty, set default email
@@ -89,12 +89,12 @@ class YoutubeGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addi
 				$taskInfo['email'] = '';
 			}
 		}
-		
+
 		$additionalFields = array();
-		
+
 		// Write the code for the field
 		$fieldID = 'task_pid';
-		//$fieldCode = '<input type="text" name="tx_scheduler[pid]" id="' . $fieldID . '" value="' . $taskInfo['pid'] . '" size="10" />';	
+		//$fieldCode = '<input type="text" name="tx_scheduler[pid]" id="' . $fieldID . '" value="' . $taskInfo['pid'] . '" size="10" />';
 		$fieldCode = $this->getSocialFoldersSelector('tx_scheduler[pid]',$taskInfo['pid']);
 		//$fieldCode .= '<div style="display: block">'.\TYPO3\CMS\Extbase\Utility\LocalizationUtility::translate( 'LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_youtubegettask.api_label', 'moox_social' ).'</div>';
 		$additionalFields[$fieldID] = array(
@@ -103,27 +103,27 @@ class YoutubeGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addi
 			'cshKey' => '_MOD_tools_txschedulerM1',
 			'cshLabel' => $fieldID
 		);
-		
+
 		// Write the code for the field
-		$fieldID = 'task_youtubeChannel';		
-		$fieldCode = '<input type="text" size="30" name="tx_scheduler[youtubeChannel]" id="' . $fieldID . '" value="' . $taskInfo['youtubeChannel'] . '" size="10" />';	
+		$fieldID = 'task_youtubeChannel';
+		$fieldCode = '<input type="text" size="30" name="tx_scheduler[youtubeChannel]" id="' . $fieldID . '" value="' . $taskInfo['youtubeChannel'] . '" size="10" />';
 		$additionalFields[$fieldID] = array(
 			'code' => $fieldCode,
 			'label' => '<strong style="width: 80px;display: inline-block">[Youtube]</strong> '.\TYPO3\CMS\Extbase\Utility\LocalizationUtility::translate( 'LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_youtubegettask.youtube_channel_label', 'moox_social' ),
 			'cshKey' => '_MOD_tools_txschedulerM1',
 			'cshLabel' => $fieldID
 		);
-		
+
 		// Write the code for the field
 		$fieldID = 'task_email';
-		$fieldCode = '<input type="text" size="30" name="tx_scheduler[email]" id="' . $fieldID . '" value="' . $taskInfo['email'] . '" size="10" />';		
+		$fieldCode = '<input type="text" size="30" name="tx_scheduler[email]" id="' . $fieldID . '" value="' . $taskInfo['email'] . '" size="10" />';
 		$additionalFields[$fieldID] = array(
 			'code' => $fieldCode,
 			'label' => '<strong style="width: 80px;display: inline-block">[Youtube]</strong> '.\TYPO3\CMS\Extbase\Utility\LocalizationUtility::translate( 'LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_youtubegettask.email_label', 'moox_social' ),
 			'cshKey' => '_MOD_tools_txschedulerM1',
 			'cshLabel' => $fieldID
 		);
-		
+
 		return $additionalFields;
 	}
 
@@ -136,38 +136,38 @@ class YoutubeGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addi
 	 * @return boolean TRUE if validation was ok (or selected class is not relevant), FALSE otherwise
 	 */
 	public function validateAdditionalFields(array &$submittedData, \TYPO3\CMS\Scheduler\Controller\SchedulerModuleController $parentObject) {
-		$submittedData['pid'] = intval($submittedData['pid']);				
+		$submittedData['pid'] = intval($submittedData['pid']);
 		if ($submittedData['pid']<0) {
 			$parentObject->addMessage($GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_youtubegettask.pid_error'), \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
 			$result = FALSE;
 		} else {
 			$result = TRUE;
 		}
-		
+
 		if ($submittedData['youtubeChannel']=="") {
 			$parentObject->addMessage($GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_youtubegettask.youtube_channel_error'), \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
 			$result = FALSE;
 		} else {
 			$result = TRUE;
 		}
-		
+
 		if ($submittedData['email']!="" && !\TYPO3\CMS\Core\Utility\GeneralUtility::validEmail($submittedData['email'])) {
 			$parentObject->addMessage($GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_youtubegettask.email_error'), \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
 			$result = FALSE;
 		} else {
 			$result = TRUE;
 		}
-		
+
 		if($result){
 			$config = array(
 				'youtube_channel' => $submittedData['youtubeChannel'],
 				'allowSignedRequest' => false
 			);
-			
+
 			$youtubeChannel = $submittedData['youtubeChannel'];
 			$feedUrl = 'https://www.youtube.com/feeds/videos.xml?user='.$youtubeChannel;
 			$feedXml = simplexml_load_file($feedUrl);
-			
+
 			$youtubeFeed = array();
 
 			foreach($feedXml->entry as $item) {
@@ -188,16 +188,16 @@ class YoutubeGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addi
 					'viewCount' => (string) $media->group->community->statistics->attributes()->views
 				);
 			}
-			
-						
-			try {			
+
+
+			try {
 				$rawFeed = $youtubeFeed;
 			} catch (\Exception $e) {
 				$parentObject->addMessage($GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_youtubegettask.api_error')." [". $e->getMessage()."]", \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
-				$result = FALSE;				
-			}						
+				$result = FALSE;
+			}
 		}
-		
+
 		return $result;
 	}
 
@@ -214,21 +214,23 @@ class YoutubeGetTaskAdditionalFieldProvider implements \TYPO3\CMS\Scheduler\Addi
 		$task->youtubeChannel = $submittedData['youtubeChannel'];
 		$task->email = $submittedData['email'];
 	}
-	
+
 	/**
-	 * Get select box of folders with social module	
+	 * Get select box of folders with social module
 	 *
-	 * @param integer $pid current storage pid	
+	 * @param integer $pid current storage pid
 	 * @return	string	Folder selector HTML code
 	 */
 	public function getSocialFoldersSelector($selectorName,$pid = 0) {
-		
-		$folders = \DCNGmbH\MooxSocial\Controller\AdministrationController::getSocialFolders();
-		
+
+		$objectManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\CMS\Extbase\Object\ObjectManager');
+		$administrationController = $objectManager->get('DCNGmbH\\MooxSocial\\Controller\\AdministrationController');
+		$folders = $administrationController->getSocialFolders();
+
 		$selector = '<select name="' . $selectorName . '">';
-		
+
 		$selector .= '<option value="0">'.$GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_youtubegettask.default_storage').' [0]</option>';
-		
+
 		foreach ($folders as $folder) {
 			$selectedAttribute = '';
 			if ($folder['uid'] == $pid) {

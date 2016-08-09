@@ -5,7 +5,7 @@ namespace DCNGmbH\MooxSocial\Tasks;
  *  Copyright notice
  *
  *  (c) 2014 Dominic Martin <dm@dcn.de>, DCN GmbH
- *  
+ *
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -33,13 +33,13 @@ use TYPO3\CMS\Core\Messaging\FlashMessageService;
  /**
  * Include Slideshare API Tools
  */
-//require_once \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('moox_social','Classes/Slideshare/SSUtil.php'); 
+//require_once \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('moox_social','Classes/Slideshare/SSUtil.php');
 
 
 /**
  * Include Slideshare Repository
  */
-//require_once \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('moox_social','Classes/Domain/Repository/Slideshare.php'); 
+//require_once \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('moox_social','Classes/Domain/Repository/Slideshare.php');
 
 /**
  * Get Slideshare slideshows
@@ -48,36 +48,36 @@ use TYPO3\CMS\Core\Messaging\FlashMessageService;
  * @license http://www.gnu.org/licenses/gpl.html GNU General Public License, version 3 or later
  *
  */
-class SlideshareGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {		
-	
+class SlideshareGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
+
 	/**
 	 * Sicherheitszeitraum f�r Zeit�berschneidungen w�hrend der zyklischen Ausf�hrung des Tasks
 	 *
 	 * @var integer
 	 */
 	public $intervalBuffer = 300;
-	
+
 	/**
 	 * PID der Seite/Ordner in dem die Posts dieses Tasks gespeichert werden sollen
 	 *
 	 * @var integer
 	 */
 	public $pid;
-	
+
 	/**
 	 * Slideshare api key
 	 *
 	 * @var string
 	 */
 	public $apiKey;
-	
+
 	/**
 	 * Slideshare api secret key
 	 *
 	 * @var string
 	 */
 	public $apiSecretKey;
-	
+
 	/**
 	 * Slideshare user ID
 	 *
@@ -91,46 +91,49 @@ class SlideshareGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	 * @var \TYPO3\CMS\Core\Messaging\FlashMessageService
 	 */
 	public $flashMessageService;
-	
+
 	/**
 	 * Works through the indexing queue and indexes the queued items into Solr.
 	 *
 	 * @return	boolean	Returns TRUE on success, FALSE if no items were indexed or none were found.
 	 * @see	typo3/sysext/scheduler/tx_scheduler_Task#execute()
 	 */
-	public function execute() {						
-		
+	public function execute() {
+
+		$objectManager = GeneralUtility::makeInstance('TYPO3\CMS\Extbase\Object\ObjectManager');
+		$flashMessageService = $objectManager->get(FlashMessageService::class);
+		$flashMessageQueue = $flashMessageService->getMessageQueueByIdentifier();
+
 		// Get the extensions's configuration
-		$extConf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['moox_social']);		
+		$extConf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['moox_social']);
 		if($extConf['debugEmailSenderName']==""){
 			$extConf['debugEmailSenderName'] = $extConf['debugEmailSenderAddress'];
-		}		
-		if($this->email==""){
-			$this->email = $extConf['debugEmailReceiverAddress'];			
 		}
-		
+		if($this->email==""){
+			$this->email = $extConf['debugEmailReceiverAddress'];
+		}
+
 		$executionSucceeded = FALSE;
-		
+
 		if(!$this->pid){
 			$this->pid = 0;
 		}
-		
+
 		if($this->apiKey!="" && $this->apiSecretKey!="" && $this->userId!=""){
-			
+
 			$execution 	= $this->getExecution();
 			$interval 	= $execution->getInterval();
 			$time 		= time();
 			$to		= $time;
-			$from		= ($time-$interval-$this->intervalBuffer);			
-			
-			try {			
-				$rawFeed = \DCNGmbH\MooxSocial\Controller\SlideshareController::slideshare($this->apiKey,$this->apiSecretKey,$this->userId);
-				/*print "<pre>";
-                                print_r($rawFeed);
-                                print "</pre>";
-				exit();*/
+			$from		= ($time-$interval-$this->intervalBuffer);
+
+			try {
+				if (!$slideshareController instanceof \DCNGmbH\MooxSocial\Controller\SlideshareController) {
+					$slideshareController = $objectManager->get('DCNGmbH\\MooxSocial\\Controller\\SlideshareController');
+				}
+				$rawFeed = $slideshareController->slideshare($this->apiKey,$this->apiSecretKey,$this->userId);
 				$executionSucceeded = TRUE;
-			} catch (\Exception $e) {				
+			} catch (\Exception $e) {
 				$message = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Messaging\\FlashMessage',
 					$GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_slidesharegettask.api_execution_error')." [". $e->getMessage()."]",
 					 '',
@@ -138,7 +141,7 @@ class SlideshareGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 					 TRUE
 				);
 				$flashMessageQueue->addMessage($message);
-				if($this->email && $extConf['debugEmailSenderAddress']){				
+				if($this->email && $extConf['debugEmailSenderAddress']){
 					$lockfile = $_SERVER['DOCUMENT_ROOT']."/typo3temp/.lock-email-task-".md5($this->apiKey.$this->apiSecretKey.$this->userId);
 					if(file_exists($lockfile)){
 						$lockfiletime = filemtime($lockfile);
@@ -146,7 +149,7 @@ class SlideshareGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 							unlink($lockfile);
 						}
 					}
-					if(!file_exists($lockfile)){						
+					if(!file_exists($lockfile)){
 						$message = (new \TYPO3\CMS\Core\Mail\MailMessage())
 									->setFrom(array($extConf['debugEmailSenderAddress'] => $extConf['debugEmailSenderName']))
 									->setTo(array($this->email => $this->email))
@@ -156,65 +159,68 @@ class SlideshareGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 						touch($lockfile);
 					}
 				}
-			}	
-			
-			
-			
+			}
+
+
+
 			$posts = array();
-			
+
 			$postIds = array();
-			
+
 			foreach($rawFeed as $item) {
-				
+
 				if(!in_array($item['ID'],$postIds)){
-					
-					$postIds[] 		= $item['ID'];					
+
+					$postIds[] 		= $item['ID'];
 					$postId 		= $item['ID'];
-					
+
 					$item['id'] 		= $postId;
 					$item['userId'] 	= $this->userId;
 					$item['pid'] 		= $this->pid;
-					
-					$post 			= \DCNGmbH\MooxSocial\Controller\SlideshareController::slidesharePost($item);
-					
+
+					if (!$slideshareController instanceof \DCNGmbH\MooxSocial\Controller\SlideshareController) {
+						$slideshareController = $objectManager->get('DCNGmbH\\MooxSocial\\Controller\\SlideshareController');
+					}
+					$post 			= $slideshareController->slidesharePost($item);
+
 					if(is_array($post)){
 						$posts[] 		= $post;
 					}
 				}
-				
+
 			}
-			
+
 			if(count($posts)){
-				
+
 				$objectManager = GeneralUtility::makeInstance('TYPO3\CMS\Extbase\Object\ObjectManager');
 				$slideshareRepository = $objectManager->get('DCNGmbH\\MooxSocial\\Domain\\Repository\\SlideshareRepository');
-				
+
 				$insertCnt = 0;
 				$updateCnt = 0;
-				
-				foreach($posts AS $post){				
-										
+
+				foreach($posts AS $post){
+
 					$slidesharePost		= $slideshareRepository->findOneByApiUid($post['apiUid'],$this->pid);
-					
+
 					if(!($slidesharePost instanceof \DCNGmbH\MooxSocial\Domain\Model\Slideshare)){
 						$slidesharePost = new \DCNGmbH\MooxSocial\Domain\Model\Slideshare;
-						$action	= "insert";						
+						$action	= "insert";
 					}
-					
+
 					if($action=="insert"){
 						$slidesharePost->setPid($post['pid']);
 						$slidesharePost->setCreated($post['created']);
 					}
-					
+
 					$slidesharePost->setUpdated($post['updated']);
 					$slidesharePost->setType($post['type']);
 					$slidesharePost->setStatusType($post['statusType']);
-					
+
 					if($action=="insert"){
 						$slidesharePost->setPage($post['page']);
 						$slidesharePost->setModel("slideshare");
 					}
-					
+
 					$slidesharePost->setAction($post['action']);
 					$slidesharePost->setTitle($post['title']);
 					$slidesharePost->setSummary($post['summary']);
@@ -233,17 +239,17 @@ class SlideshareGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 					$slidesharePost->setSharedUrl($post['sharedUrl']);
 					$slidesharePost->setSharedTitle($post['sharedTitle']);
 					$slidesharePost->setSharedDescription($post['sharedDescription']);
-					$slidesharePost->setSharedCaption($post['sharedCaption']);				
+					$slidesharePost->setSharedCaption($post['sharedCaption']);
 					$slidesharePost->setLikes($post['likes']);
 					$slidesharePost->setShares($post['shares']);
 					$slidesharePost->setComments($post['comments']);
-					
+
 					if($action=="insert"){
 						$slidesharePost->setApiUid($post['apiUid']);
 					}
-					
+
 					$slidesharePost->setApiHash($post['apiHash']);
-					
+
 					if($action=="insert"){
 						$slideshareRepository->add($slidesharePost);
 						$insertCnt++;
@@ -251,10 +257,10 @@ class SlideshareGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 						$slideshareRepository->update($slidesharePost);
 						$updateCnt++;
 					}
-				}	
-				
+				}
+
 				$objectManager->get('TYPO3\CMS\Extbase\Persistence\PersistenceManagerInterface')->persistAll();
-				
+
 				$message = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Messaging\\FlashMessage',
 					$insertCnt." neue Praesentationen geladen | ".$updateCnt." bestehende Praesentationen aktualisiert",
 					 '',
@@ -271,11 +277,11 @@ class SlideshareGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 				);
 				$flashMessageQueue->addMessage($message);
 			}
-		} 				
+		}
 
 		return $executionSucceeded;
 	}
-	
+
 	/**
 	 * This method returns the sleep duration as additional information
 	 *
@@ -291,7 +297,7 @@ class SlideshareGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 		}
 		return $info;
 	}
-	
+
 	/**
 	 * Returns the pid
 	 *
@@ -310,7 +316,7 @@ class SlideshareGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	public function setPid($pid) {
 		$this->pid = $pid;
 	}
-	
+
 	/**
 	 * Returns the api key
 	 *
@@ -329,7 +335,7 @@ class SlideshareGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	public function setApiKey($apiKey) {
 		$this->apiKey = $apiKey;
 	}
-	
+
 	/**
 	 * Returns the api secret key
 	 *
@@ -348,7 +354,7 @@ class SlideshareGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	public function setApiSecretKey($apiSecretKey) {
 		$this->apiSecretKey = $apiSecretKey;
 	}
-	
+
 	/**
 	 * Returns the user id
 	 *
@@ -367,7 +373,7 @@ class SlideshareGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	public function setUserId($userId) {
 		$this->userId = $userId;
 	}
-	
+
 	/**
 	 * Returns the page id
 	 *

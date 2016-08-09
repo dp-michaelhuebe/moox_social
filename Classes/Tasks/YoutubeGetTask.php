@@ -5,7 +5,7 @@ namespace DCNGmbH\MooxSocial\Tasks;
  *  Copyright notice
  *
  *  (c) 2014 Dominic Martin <dm@dcn.de>, DCN GmbH
- *  
+ *
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -29,11 +29,11 @@ use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageService;
-	
+
 /**
  * Include Youtube Repository
  */
-//require_once \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('moox_social','Classes/Domain/Repository/Youtube.php'); 
+//require_once \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('moox_social','Classes/Domain/Repository/Youtube.php');
 
 /**
  * Get Youtube videos
@@ -42,22 +42,22 @@ use TYPO3\CMS\Core\Messaging\FlashMessageService;
  * @license http://www.gnu.org/licenses/gpl.html GNU General Public License, version 3 or later
  *
  */
-class YoutubeGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {		
-	
+class YoutubeGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
+
 	/**
 	 * Sicherheitszeitraum f�r Zeit�berschneidungen w�hrend der zyklischen Ausf�hrung des Tasks
 	 *
 	 * @var integer
 	 */
 	public $intervalBuffer = 300;
-	
+
 	/**
 	 * PID der Seite/Ordner in dem die Posts dieses Tasks gespeichert werden sollen
 	 *
 	 * @var integer
 	 */
 	public $pid;
-	
+
 	/**
 	 * YOUTUBE_CHANNEL Ihrer Youtube Timeline
 	 *
@@ -71,46 +71,50 @@ class YoutubeGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	 * @var \TYPO3\CMS\Core\Messaging\FlashMessageService
 	 */
 	public $flashMessageService;
-	
+
 	/**
 	 * Works through the indexing queue and indexes the queued items into Solr.
 	 *
 	 * @return	boolean	Returns TRUE on success, FALSE if no items were indexed or none were found.
 	 * @see	typo3/sysext/scheduler/tx_scheduler_Task#execute()
 	 */
-	public function execute() {						
-		
+	public function execute() {
+
+		$objectManager = GeneralUtility::makeInstance('TYPO3\CMS\Extbase\Object\ObjectManager');
+		$flashMessageService = $objectManager->get(FlashMessageService::class);
+		$flashMessageQueue = $flashMessageService->getMessageQueueByIdentifier();
+
 		// Get the extensions's configuration
-		$extConf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['moox_social']);		
+		$extConf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['moox_social']);
 		if($extConf['debugEmailSenderName']==""){
 			$extConf['debugEmailSenderName'] = $extConf['debugEmailSenderAddress'];
-		}		
-		if($this->email==""){
-			$this->email = $extConf['debugEmailReceiverAddress'];			
 		}
-		
+		if($this->email==""){
+			$this->email = $extConf['debugEmailReceiverAddress'];
+		}
+
 		$executionSucceeded = FALSE;
-		
+
 		if(!$this->pid){
 			$this->pid = 0;
 		}
-		
+
 		if($this->youtubeChannel!=""){
-			
+
 			$execution 	= $this->getExecution();
 			$interval 	= $execution->getInterval();
 			$time 		= time();
 			$to			= $time;
-			$from		= ($time-$interval-$this->intervalBuffer);			
-			
-			try {			
-				$rawFeed = \DCNGmbH\MooxSocial\Controller\YoutubeController::youtube($this->youtubeChannel);
-				/*print "<pre>"; 
-                                print_r($rawFeed);
-                                print "</pre>"; 
-				exit();*/
+			$from		= ($time-$interval-$this->intervalBuffer);
+
+			try {
+
+				if (!$youtubeController instanceof \DCNGmbH\MooxSocial\Controller\YoutubeController) {
+					$youtubeController = $objectManager->get('DCNGmbH\\MooxSocial\\Controller\\YoutubeController');
+				}
+				$rawFeed = $youtubeController->youtube($this->youtubeChannel);
 				$executionSucceeded = TRUE;
-			} catch (\Exception $e) {				
+			} catch (\Exception $e) {
 				$message = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Messaging\\FlashMessage',
 					$GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_youtubegettask.api_execution_error')." [". $e->getMessage()."]",
 					 '',
@@ -118,7 +122,7 @@ class YoutubeGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 					 TRUE
 				);
 				$flashMessageQueue->addMessage($message);
-				if($this->email && $extConf['debugEmailSenderAddress']){				
+				if($this->email && $extConf['debugEmailSenderAddress']){
 					$lockfile = $_SERVER['DOCUMENT_ROOT']."/typo3temp/.lock-email-task-".md5($this->youtubeChannel);
 					if(file_exists($lockfile)){
 						$lockfiletime = filemtime($lockfile);
@@ -126,7 +130,7 @@ class YoutubeGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 							unlink($lockfile);
 						}
 					}
-					if(!file_exists($lockfile)){						
+					if(!file_exists($lockfile)){
 						$message = (new \TYPO3\CMS\Core\Mail\MailMessage())
 									->setFrom(array($extConf['debugEmailSenderAddress'] => $extConf['debugEmailSenderName']))
 									->setTo(array($this->email => $this->email))
@@ -136,67 +140,70 @@ class YoutubeGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 						touch($lockfile);
 					}
 				}
-			}	
-			
-			
-			
+			}
+
+
+
 			$posts = array();
-			
+
 			$postIds = array();
-			
+
 			foreach($rawFeed as $item) {
-				
+
 				//if(1 || !in_array($item['type'],array("status"))){
 				//if(!in_array($item['id'],$postIds) && $item['status_type']!=""){
 				if(!in_array($item['id'],$postIds)){
-					
-					$postIds[] 		= $item['id'];					
-					$postId 		= $item['id'];
-					
-					$item['id'] 		= $postId;
-					$item['youtubeChannel'] 		= $this->youtubeChannel;
+
+					$postIds[] 				= $item['id'];
+					$postId 				= $item['id'];
+
+					$item['id'] 			= $postId;
+					$item['youtubeChannel']	= $this->youtubeChannel;
 					$item['pid'] 			= $this->pid;
-					
-					$post 			= \DCNGmbH\MooxSocial\Controller\YoutubeController::youtubePost($item);
-					
+
+					if (!$youtubeController instanceof \DCNGmbH\MooxSocial\Controller\YoutubeController) {
+						$youtubeController = $objectManager->get('DCNGmbH\\MooxSocial\\Controller\\YoutubeController');
+					}
+					$post 					= $youtubeController->youtubePost($item);
+
 					if(is_array($post)){
-						$posts[] 		= $post;
+						$posts[] 			= $post;
 					}
 				}
-				
+
 			}
-			
+
 			if(count($posts)){
-				
+
 				$objectManager = GeneralUtility::makeInstance('TYPO3\CMS\Extbase\Object\ObjectManager');
 				$youtubeRepository = $objectManager->get('DCNGmbH\\MooxSocial\\Domain\\Repository\\YoutubeRepository');
-				
+
 				$insertCnt = 0;
 				$updateCnt = 0;
-				
-				foreach($posts AS $post){				
-										
+
+				foreach($posts AS $post){
+
 					$youtubePost		= $youtubeRepository->findOneByApiUid($post['apiUid'],$this->pid);
-					
+
 					if(!($youtubePost instanceof \DCNGmbH\MooxSocial\Domain\Model\Youtube)){
 						$youtubePost = new \DCNGmbH\MooxSocial\Domain\Model\Youtube;
-						$action	= "insert";						
+						$action	= "insert";
 					}
-					
+
 					if($action=="insert"){
 						$youtubePost->setPid($post['pid']);
 						$youtubePost->setCreated($post['created']);
 					}
-					
+
 					$youtubePost->setUpdated($post['updated']);
 					$youtubePost->setType($post['type']);
 					$youtubePost->setStatusType($post['statusType']);
-					
+
 					if($action=="insert"){
 						$youtubePost->setPage($post['page']);
 						$youtubePost->setModel("youtube");
 					}
-					
+
 					$youtubePost->setAction($post['action']);
 					$youtubePost->setTitle($post['title']);
 					$youtubePost->setSummary($post['summary']);
@@ -215,17 +222,17 @@ class YoutubeGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 					$youtubePost->setSharedUrl($post['sharedUrl']);
 					$youtubePost->setSharedTitle($post['sharedTitle']);
 					$youtubePost->setSharedDescription($post['sharedDescription']);
-					$youtubePost->setSharedCaption($post['sharedCaption']);				
+					$youtubePost->setSharedCaption($post['sharedCaption']);
 					$youtubePost->setLikes($post['likes']);
 					$youtubePost->setShares($post['shares']);
 					$youtubePost->setComments($post['comments']);
-					
+
 					if($action=="insert"){
 						$youtubePost->setApiUid($post['apiUid']);
 					}
-					
+
 					$youtubePost->setApiHash($post['apiHash']);
-					
+
 					if($action=="insert"){
 						$youtubeRepository->add($youtubePost);
 						$insertCnt++;
@@ -233,10 +240,10 @@ class YoutubeGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 						$youtubeRepository->update($youtubePost);
 						$updateCnt++;
 					}
-				}	
-				
+				}
+
 				$objectManager->get('TYPO3\CMS\Extbase\Persistence\PersistenceManagerInterface')->persistAll();
-				
+
 				$message = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Messaging\\FlashMessage',
 					$insertCnt." neue Videos geladen | ".$updateCnt." bestehende Videos aktualisiert",
 					 '',
@@ -253,11 +260,11 @@ class YoutubeGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 				);
 				$flashMessageQueue->addMessage($message);
 			}
-		} 				
+		}
 
 		return $executionSucceeded;
 	}
-	
+
 	/**
 	 * This method returns the sleep duration as additional information
 	 *
@@ -271,7 +278,7 @@ class YoutubeGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 		}
 		return $info;
 	}
-	
+
 	/**
 	 * Returns the pid
 	 *
@@ -290,7 +297,7 @@ class YoutubeGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	public function setPid($pid) {
 		$this->pid = $pid;
 	}
-	
+
 	/**
 	 * Returns the youtube channel
 	 *
@@ -309,7 +316,7 @@ class YoutubeGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	public function setYoutubeChannel($youtubeChannel) {
 		$this->youtubeChannel = $youtubeChannel;
 	}
-	
+
 	/**
 	 * Returns the page id
 	 *
