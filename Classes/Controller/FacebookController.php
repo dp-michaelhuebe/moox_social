@@ -395,7 +395,7 @@ class FacebookController extends \DCNGmbH\MooxSocial\Controller\PostController {
 				$until 			= time();
 				for($i=1;$i<=$repeats;$i++){
 					$since = $until-(604800*16);
-					$request="posts?limit=99&since=".$since."&until=".$until; //."&limit=10000"; limit > 99 is not allowed
+					$request="posts?limit=99&since=" . $since . "&until=" . $until . "&fields=full_picture,message,status_type,created_time"; //."&limit=10000"; limit > 99 is not allowed
 					$url = '/' . $pageId . '/'.$request;
 					$rawFeedTmp = $facebook->api($url);
 					if(count($rawFeedTmp['data'])>0){
@@ -412,7 +412,7 @@ class FacebookController extends \DCNGmbH\MooxSocial\Controller\PostController {
 				}
 				$rawFeed = array("data" => $rawFeedData);
 			} else {
-				$request="posts?limit=25";
+				$request="posts?limit=25&fields=full_picture,message,status_type,created_time";
 				$url = '/' . $pageId . '/'.$request;
 				$rawFeed = $facebook->api($url);
 			}
@@ -465,6 +465,11 @@ class FacebookController extends \DCNGmbH\MooxSocial\Controller\PostController {
 					$item['picture'] = "";
 				}
 			}
+
+			if (!$item['picture'] && $item['full_picture']) {
+				$item['picture'] = $item['full_picture'];
+			}
+
 			$post['pid'] 					= $item['pid'];
 			$post['created'] 				= strtotime($item['created_time']);
 			$post['updated'] 				= strtotime($item['created_time']);
