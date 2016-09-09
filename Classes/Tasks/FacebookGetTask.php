@@ -33,7 +33,7 @@ use TYPO3\CMS\Core\Messaging\FlashMessageService;
 /**
  * Include Facebook API Tools
  */
-require_once \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('moox_social','Classes/Facebook/facebook.php');
+require_once \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('moox_social', 'Classes/Facebook/facebook.php');
 
 /**
  * Include Facebook Repository
@@ -47,7 +47,8 @@ require_once \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('moox_s
  * @license http://www.gnu.org/licenses/gpl.html GNU General Public License, version 3 or later
  *
  */
-class FacebookGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
+class FacebookGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask
+{
 
 	/**
 	 * Sicherheitszeitraum f�r Zeit�berschneidungen w�hrend der zyklischen Ausf�hrung des Tasks
@@ -108,10 +109,11 @@ class FacebookGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	/**
 	 * Works through the indexing queue and indexes the queued items into Solr.
 	 *
-	 * @return	boolean	Returns TRUE on success, FALSE if no items were indexed or none were found.
-	 * @see	typo3/sysext/scheduler/tx_scheduler_Task#execute()
+	 * @return    boolean    Returns TRUE on success, FALSE if no items were indexed or none were found.
+	 * @see    typo3/sysext/scheduler/tx_scheduler_Task#execute()
 	 */
-	public function execute() {
+	public function execute()
+	{
 
 		$objectManager = GeneralUtility::makeInstance('TYPO3\CMS\Extbase\Object\ObjectManager');
 		$flashMessageService = $objectManager->get(FlashMessageService::class);
@@ -119,92 +121,92 @@ class FacebookGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
 		// Get the extensions's configuration
 		$extConf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['moox_social']);
-		if($extConf['debugEmailSenderName']==""){
+		if ($extConf['debugEmailSenderName'] == "") {
 			$extConf['debugEmailSenderName'] = $extConf['debugEmailSenderAddress'];
 		}
-		if($this->email==""){
+		if ($this->email == "") {
 			$this->email = $extConf['debugEmailReceiverAddress'];
 		}
 
 		$executionSucceeded = FALSE;
 
-		if(!$this->pid){
+		if (!$this->pid) {
 			$this->pid = 0;
 		}
 
-		if($this->clearCachePages!=""){
-			$this->clearCachePages = explode(",",$this->clearCachePages);
+		if ($this->clearCachePages != "") {
+			$this->clearCachePages = explode(",", $this->clearCachePages);
 		}
 
-		if($this->appId!="" && $this->secret!="" && $this->pageId!=""){
+		if ($this->appId != "" && $this->secret != "" && $this->pageId != "") {
 
-			$execution 	= $this->getExecution();
-			$interval 	= $execution->getInterval();
-			$time 		= time();
-			$to			= $time;
-			$from		= ($time-$interval-self::$intervalBuffer);
+			$execution = $this->getExecution();
+			$interval = $execution->getInterval();
+			$time = time();
+			$to = $time;
+			$from = ($time - $interval - self::$intervalBuffer);
 
 			try {
 				if (!$facebookController instanceof \DCNGmbH\MooxSocial\Controller\FacebookController) {
 					$facebookController = $objectManager->get('DCNGmbH\\MooxSocial\\Controller\\FacebookController');
 				}
-				$rawFeed = $facebookController->facebook($this->appId,$this->secret,$this->pageId,'posts?since='.$from.'&until='.$to.'&limit='.self::$limit);
+				$rawFeed = $facebookController->facebook($this->appId, $this->secret, $this->pageId, 'posts?since=' . $from . '&until=' . $to . '&limit=' . self::$limit);
 				$executionSucceeded = TRUE;
 			} catch (\DCNGmbH\MooxSocial\Facebook\FacebookApiException $e) {
 				$message = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Messaging\\FlashMessage',
-					$GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_facebookgettask.api_execution_error')." [". $e->getMessage()."]",
-					 '',
-					 FlashMessage::ERROR,
-					 TRUE
+					$GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_facebookgettask.api_execution_error') . " [" . $e->getMessage() . "]",
+					'',
+					FlashMessage::ERROR,
+					TRUE
 				);
 				$flashMessageQueue->addMessage($message);
-				if($this->email && $extConf['debugEmailSenderAddress']){
-					$lockfile = $_SERVER['DOCUMENT_ROOT']."/typo3temp/.lock-email-task-".md5($this->appId.$this->secret.$this->pageId);
-					if(file_exists($lockfile)){
+				if ($this->email && $extConf['debugEmailSenderAddress']) {
+					$lockfile = $_SERVER['DOCUMENT_ROOT'] . "/typo3temp/.lock-email-task-" . md5($this->appId . $this->secret . $this->pageId);
+					if (file_exists($lockfile)) {
 						$lockfiletime = filemtime($lockfile);
-						if($lockfiletime<(time()-86400)){
+						if ($lockfiletime < (time() - 86400)) {
 							unlink($lockfile);
 						}
 					}
-					if(!file_exists($lockfile)){
+					if (!file_exists($lockfile)) {
 						$message = (new \TYPO3\CMS\Core\Mail\MailMessage())
-									->setFrom(array($extConf['debugEmailSenderAddress'] => $extConf['debugEmailSenderName']))
-									->setTo(array($this->email => $this->email))
-									->setSubject($GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_facebookgettask.api_error_mailsubject'))
-									->setBody('ERROR: while requesting [app id: '.$this->appId.' | secret: '.$this->secret.' | page id: '.$this->pageId."]");
-									$message->send();
+							->setFrom(array($extConf['debugEmailSenderAddress'] => $extConf['debugEmailSenderName']))
+							->setTo(array($this->email => $this->email))
+							->setSubject($GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_facebookgettask.api_error_mailsubject'))
+							->setBody('ERROR: while requesting [app id: ' . $this->appId . ' | secret: ' . $this->secret . ' | page id: ' . $this->pageId . "]");
+						$message->send();
 						touch($lockfile);
 					}
 				}
 			}
 
-			$posts 		= array();
-			$postIds 	= array();
+			$posts = array();
+			$postIds = array();
 
-			foreach($rawFeed['data'] as $item) {
+			foreach ($rawFeed['data'] as $item) {
 
-				if(!in_array($item['id'],$postIds) && ($item['status_type']!="" || !array_key_exists('status_type', $item))) {
+				if (!in_array($item['id'], $postIds) && ($item['status_type'] != "" || !array_key_exists('status_type', $item))) {
 
-					$postIds[] 		= $item['id'];
-					$postId 		= explode("_",$item['id']);
-					$postId 		= $postId[1];
+					$postIds[] = $item['id'];
+					$postId = explode("_", $item['id']);
+					$postId = $postId[1];
 
 					$item['postId'] = $postId;
 					$item['pageId'] = $this->pageId;
-					$item['pid'] 	= $this->pid;
+					$item['pid'] = $this->pid;
 
 					if (!$facebookController instanceof \DCNGmbH\MooxSocial\Controller\FacebookController) {
 						$facebookController = $objectManager->get('DCNGmbH\\MooxSocial\\Controller\\FacebookController');
 					}
-					$post 			= $facebookController->facebookPost($item);
+					$post = $facebookController->facebookPost($item);
 
-					if(is_array($post)){
-						$posts[] 		= $post;
+					if (is_array($post)) {
+						$posts[] = $post;
 					}
 				}
 			}
 
-			if(count($posts)){
+			if (count($posts)) {
 
 				$objectManager = GeneralUtility::makeInstance('TYPO3\CMS\Extbase\Object\ObjectManager');
 				$facebookRepository = $objectManager->get('DCNGmbH\\MooxSocial\\Domain\\Repository\\FacebookRepository');
@@ -212,16 +214,16 @@ class FacebookGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 				$insertCnt = 0;
 				$updateCnt = 0;
 
-				foreach($posts AS $post){
+				foreach ($posts AS $post) {
 
-					$facebookPost		= $facebookRepository->findOneByApiUid($post['apiUid'],$this->pid);
+					$facebookPost = $facebookRepository->findOneByApiUid($post['apiUid'], $this->pid);
 
-					if(!($facebookPost instanceof \DCNGmbH\MooxSocial\Domain\Model\Facebook)){
+					if (!($facebookPost instanceof \DCNGmbH\MooxSocial\Domain\Model\Facebook)) {
 						$facebookPost = new \DCNGmbH\MooxSocial\Domain\Model\Facebook;
-						$action	= "insert";
+						$action = "insert";
 					}
 
-					if($action=="insert"){
+					if ($action == "insert") {
 						$facebookPost->setPid($post['pid']);
 						$facebookPost->setCreated($post['created']);
 					}
@@ -230,7 +232,7 @@ class FacebookGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 					$facebookPost->setType($post['type']);
 					$facebookPost->setStatusType($post['statusType']);
 
-					if($action=="insert"){
+					if ($action == "insert") {
 						$facebookPost->setPage($post['page']);
 						$facebookPost->setModel("facebook");
 					}
@@ -258,13 +260,13 @@ class FacebookGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 					$facebookPost->setShares($post['shares']);
 					$facebookPost->setComments($post['comments']);
 
-					if($action=="insert"){
+					if ($action == "insert") {
 						$facebookPost->setApiUid($post['apiUid']);
 					}
 
 					$facebookPost->setApiHash($post['apiHash']);
 
-					if($action=="insert"){
+					if ($action == "insert") {
 						$facebookRepository->add($facebookPost);
 						$insertCnt++;
 					} else {
@@ -275,23 +277,23 @@ class FacebookGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
 				$objectManager->get('TYPO3\CMS\Extbase\Persistence\PersistenceManagerInterface')->persistAll();
 
-				if($insertCnt>0 || $updateCnt>0){
+				if ($insertCnt > 0 || $updateCnt > 0) {
 					$administrationController = $objectManager->get('DCNGmbH\\MooxSocial\\Controller\\AdministrationController')->clearCache("mooxsocial_pi1", $this->clearCachePages);
 				}
 
 				$message = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Messaging\\FlashMessage',
-					$insertCnt." neue Posts geladen | ".$updateCnt." bestehende Posts aktualisiert",
-					 '',
-					 FlashMessage::OK,
-					 TRUE
+					$insertCnt . " neue Posts geladen | " . $updateCnt . " bestehende Posts aktualisiert",
+					'',
+					FlashMessage::OK,
+					TRUE
 				);
 				$flashMessageQueue->addMessage($message);
 			} else {
 				$message = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Messaging\\FlashMessage',
-					 "Keine neuen oder aktualisierten Posts gefunden",
-					 '',
-					 FlashMessage::OK,
-					 TRUE
+					"Keine neuen oder aktualisierten Posts gefunden",
+					'',
+					FlashMessage::OK,
+					TRUE
 				);
 				$flashMessageQueue->addMessage($message);
 			}
@@ -305,14 +307,15 @@ class FacebookGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	 *
 	 * @return string Information to display
 	 */
-	public function getAdditionalInformation() {
+	public function getAdditionalInformation()
+	{
 		$info = $GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_facebookgettask.pid_label') . ': ' . $this->pid;
-		$info .= " | ".$GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_facebookgettask.page_id_label') . ': ' . $this->pageId;
-		if($this->email){
-			$info .= " | ".$GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_facebookgettask.email_label') . ': ' . $this->email;
+		$info .= " | " . $GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_facebookgettask.page_id_label') . ': ' . $this->pageId;
+		if ($this->email) {
+			$info .= " | " . $GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_facebookgettask.email_label') . ': ' . $this->email;
 		}
-		$detailInfo = " | ".$GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_facebookgettask.app_id_label') . ': ' . $this->appId;
-		$detailInfo .= " | ".$GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_facebookgettask.secret_label') . ': ' . $this->secret;
+		$detailInfo = " | " . $GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_facebookgettask.app_id_label') . ': ' . $this->appId;
+		$detailInfo .= " | " . $GLOBALS['LANG']->sL('LLL:EXT:moox_social/Resources/Private/Language/locallang_scheduler.xlf:tx_mooxsocial_tasks_facebookgettask.secret_label') . ': ' . $this->secret;
 
 		return $info;
 	}
@@ -322,7 +325,8 @@ class FacebookGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	 *
 	 * @return integer
 	 */
-	public function getPid() {
+	public function getPid()
+	{
 		return $this->pid;
 	}
 
@@ -332,7 +336,8 @@ class FacebookGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	 * @param integer $pid pid
 	 * @return void
 	 */
-	public function setPid($pid) {
+	public function setPid($pid)
+	{
 		$this->pid = $pid;
 	}
 
@@ -341,7 +346,8 @@ class FacebookGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	 *
 	 * @return integer
 	 */
-	public function getAppId() {
+	public function getAppId()
+	{
 		return $this->appId;
 	}
 
@@ -351,7 +357,8 @@ class FacebookGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	 * @param integer $appId app id
 	 * @return void
 	 */
-	public function setAppId($appId) {
+	public function setAppId($appId)
+	{
 		$this->appId = $appId;
 	}
 
@@ -360,7 +367,8 @@ class FacebookGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	 *
 	 * @return integer
 	 */
-	public function getSecret() {
+	public function getSecret()
+	{
 		return $this->secret;
 	}
 
@@ -370,7 +378,8 @@ class FacebookGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	 * @param integer $secret secret
 	 * @return void
 	 */
-	public function setSecret($secret) {
+	public function setSecret($secret)
+	{
 		$this->secret = $secret;
 	}
 
@@ -379,7 +388,8 @@ class FacebookGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	 *
 	 * @return integer
 	 */
-	public function getPageId() {
+	public function getPageId()
+	{
 		return $this->pageId;
 	}
 
@@ -389,7 +399,8 @@ class FacebookGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	 * @param integer $pageId page id
 	 * @return void
 	 */
-	public function setPageId($pageId) {
+	public function setPageId($pageId)
+	{
 		$this->pageId = $pageId;
 	}
 
@@ -398,7 +409,8 @@ class FacebookGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	 *
 	 * @return string
 	 */
-	public function getClearCachePages() {
+	public function getClearCachePages()
+	{
 		return $this->string;
 	}
 
@@ -408,8 +420,10 @@ class FacebookGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 	 * @param string $clearCachePages clear cache pages
 	 * @return void
 	 */
-	public function setClearCachePages($clearCachePages) {
+	public function setClearCachePages($clearCachePages)
+	{
 		$this->clearCachePages = $clearCachePages;
 	}
 }
+
 ?>
