@@ -180,10 +180,10 @@ class TwitterGetTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
 			foreach($rawFeed as $item) {
 
-				if(!in_array($item['id'],$postIds)){
+				if(!in_array($item['id_str'],$postIds)){
 
-					$postIds[] 				= $item['id'];
-					$postId 				= $item['id'];
+					$postIds[] 				= $item['id_str'];
+					$postId 				= $item['id_str'];
 
 					$item['postId'] 		= $postId;
 					$item['screen_name'] 	= $item['user']['screen_name'];
